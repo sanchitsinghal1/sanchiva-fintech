@@ -5,7 +5,9 @@
  *   totals     → total in / total out / net over the window.
  */
 const mongoose = require('mongoose');
-const Transaction = require('../models/Transaction');
+const Transaction = require("../models/Transaction");
+const Cashback = require("../models/Cashback");
+const User = require("../models/User");
 const { ok } = require('../utils/apiResponse');
 
 const CATEGORY_META = {
@@ -99,4 +101,21 @@ exports.summary = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+// ============================== REWARDS ==============================
+exports.rewards = async (req, res, next) => {
+  try {
+    const uid = new mongoose.Types.ObjectId(req.user._id);
+    const since = new Date(Date.now() - 90 * 86400_000);
+    const volAgg = await Transaction.aggregate([
+      { $match: { fromUserId: uid, status: 'COMPLETED', createdAt: { $gte: since }, category: { $ne: 'INCOME' } } },
+      { $group: { _id: null, volume: { $sum: '$amount' } } },
+    ]);
+    const volume = volAgg[0]?.volume || 0;
+    const tier = volume >= 150000 ? 'OBSIDIAN' : volume >= 25000 ? 'GOLD' : 'SILVER';
+    if (req.user.tier !== tier) { await User.updateOne({ _id: req.user._id }, { tier }); req.user.tier = tier; }
+    const recent = await Cashback.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(10).lean();
+    return ok(res, { tier, volume: Math.round(volume * 100) / 100, cashbackTotal: req.user.cashbackTotal || 0, recent });
+  } catch (err) { next(err); }
 };

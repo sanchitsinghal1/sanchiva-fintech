@@ -11,6 +11,7 @@ router.post('/login', authLimiter, auth.login);
 router.post('/refresh', auth.refresh);
 router.post('/logout', auth.logout);
 router.get('/me', requireUser, auth.me);
+router.get('/sessions', requireUser, auth.mySessions);
 router.put('/profile', requireUser, auth.updateProfile);
 router.post('/kyc', requireUser, auth.completeKyc);
 

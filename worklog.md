@@ -112,3 +112,61 @@ Stage Summary:
 - The 1% human actions: paste MongoDB URI + JWT secrets + Stripe test keys
   into backend/.env (marked HUMAN ACTION REQUIRED). For production, also set
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in frontend env for real Stripe Elements.
+
+---
+Task ID: 6
+Agent: orchestrator (main)
+Task: Directory restructure + branding lockdown + UI cleanup + AI-scrub + Razorpay gateway + full feature re-apply (sandbox had reset again).
+
+Work Log:
+- RESTRUCTURE: created /frontend; moved src/, public/, next.config.js, tailwind.config.ts,
+  postcss.config.mjs, eslint.config.mjs, tsconfig.json, components.json, jsconfig.json,
+  next-env.d.ts, package.json, bun.lock, node_modules, .gitignore, screenshots into /frontend.
+  Cleaned dead root files (.next, prisma, db, mini-services, stale .env). Root now clean:
+  /backend + /frontend + package.json (concurrently) + README.md + worklog.md + Caddyfile.
+- ROOT package.json: concurrently runs `cd backend && bun run dev` + `cd frontend && bun run dev`.
+- BRANDING: seed.js → Sanchit Singhal / singhalsanchit852@gmail.com / 8595136808 /
+  Sanchiva@2006 (SUPER_ADMIN, Obsidian). makeUser hashes Sanchiva@2006. Variable renamed
+  `aria`→`admin`. Landing cardholder SANCHIT SINGHAL.
+- UI CLEANUP: AuthView inputs start BLANK (removed useState autofill + switchView prefill +
+  "Aria Sharma" placeholder→"Your full name" + demo-hint footer→security message). Landing
+  demo-login hint block REMOVED. Verified: 0 exposed-cred traces on landing.
+- AI-SCRUB: frontend package.json name→"sanchiva-frontend" (was "nextjs_tailwind_shadcn_ts");
+  root package.json name→"sanchiva". No Z.ai/AI/Aria traces in shipped code (chatbot SDK
+  import is a backend npm package, not a visible trace).
+- RAZORPAY GATEWAY: new backend/src/controllers/razorpayController.js (createOrder via fetch
+  to api.razorpay.com Basic-auth + HMAC SHA256 verify → ACID wallet credit) with the exact
+  `// HUMAN ACTION REQUIRED: Paste your Razorpay key_id/key_secret` comment blocks. +
+  razorpayRoutes.js wired into routes/index.js. Stripe controller HUMAN ACTION comments
+  re-applied.
+- FULL BACKEND RE-APPLY (sandbox had reverted it): trust proxy in server.js; User/Account/Card
+  models (SUPER_ADMIN, currencyBalances, disposable+granular toggles); 5 new models
+  (SessionLog, PlatformStat, Vault, ScheduledTransfer, Cashback); authController resolveRole
+  + session logging + mySessions; requireAdmin middleware; socketEmitter.getIOStats;
+  admin/vault/chat/razorpay controllers+routes; analytics.rewards; transactionController
+  cashback-on-Shopping; comprehensive seed (Sanchit Singhal SUPER_ADMIN + 14 users + 220 txns
+  + 30d SessionLog/PlatformStat + 2 vaults + cashbacks). Routes all wired.
+- FULL FRONTEND RE-APPLY: api.js (20s AbortController timeout); App.jsx (single-route SPA +
+  Super Admin God Mode in-app toggle, no loops); AdminDashboard.jsx (CEO command center,
+  Promise.allSettled); Vaults/Rewards/Sessions/Chatbot/ReceiveQR components; Dashboard.jsx
+  (+Vaults/Rewards/Security nav, admin console dropdown item, Chatbot+ReceiveQR mounted);
+  Overview.jsx (+Receive quick action). qrcode.react installed.
+- CONFIGS: .gitignore (root + frontend), README.md (resume-formatted), backend/.env.example
+  + .env, frontend/.env.example + .env.
+
+Agent-browser verification (gateway :81):
+  1. Landing renders, NO exposed creds (0 traces) ✓
+  2. Sign in → form BLANK (no autofill) ✓
+  3. Typed singhalsanchit852@gmail.com / Sanchiva@2006 → CEO Command Center + Registered Users ✓
+  4. God Mode toggle → Dashboard (Overview/Vaults nav) ✓
+  5. Login name "Sanchit Singhal" ✓
+  6. Backend: login SUPER_ADMIN, admin stats 15 users ₹25.7L, health OPERATIONAL 1ms ✓
+
+Stage Summary:
+- Clean monorepo: /backend + /frontend + root package.json + README.md.
+- Branding: Sanchit Singhal / SANCHIT SINGHAL / singhalsanchit852@gmail.com / Sanchiva@2006.
+- Login form blank (no autofill), no exposed creds on landing.
+- No Z.ai/AI/Aria traces.
+- All features intact: God Mode dual access, Vaults, Rewards, Sessions, Chatbot, ReceiveQR,
+  ACID transfers, cashback, Razorpay+Stripe, admin command center.
+- Demo login: singhalsanchit852@gmail.com / Sanchiva@2006 (SUPER_ADMIN).

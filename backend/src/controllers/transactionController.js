@@ -161,6 +161,22 @@ exports.transfer = async (req, res, next) => {
       });
     }
 
+    // --- Cashback on Shopping: random 1-5% (Rewards & Gamification) ---
+    if (category === 'SHOPPING' && Math.random() < 0.6) {
+      try {
+        const Cashback = require('../models/Cashback');
+        const rate = 1 + Math.floor(Math.random() * 5);
+        const cbAmount = Math.round((amount * rate) / 100);
+        if (cbAmount > 0) {
+          src.balance += cbAmount;
+          await src.save();
+          await Cashback.create({ userId: req.user._id, transactionId: debit._id, amount: cbAmount, rate, merchant: note || debit.description });
+          await require('../models/User').updateOne({ _id: req.user._id }, { $inc: { cashbackTotal: cbAmount } });
+          emitToUser(req.user._id, 'notification', { title: `+${rate}% cashback earned!`, message: `₹${cbAmount} cashback on your shopping.` });
+        }
+      } catch (e) { console.warn('[cashback] failed:', e.message); }
+    }
+
     return ok(res, {
       transaction: { ...debit.toObject(), newBalance: src.balance },
     });

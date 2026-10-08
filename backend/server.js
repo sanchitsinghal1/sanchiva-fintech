@@ -30,6 +30,11 @@ const { globalLimiter } = require('./src/middleware/rateLimit');
 const app = express();
 const httpServer = http.createServer(app);
 
+// Trust the Caddy gateway's X-Forwarded-* headers so express-rate-limit can
+// identify the real client IP. WITHOUT this, proxied requests throw
+// ERR_ERL_UNEXPECTED_X_FORWARDED_FOR → 500 → "Invalid server response".
+app.set('trust proxy', 1);
+
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(compression());
 app.use(morgan('dev'));

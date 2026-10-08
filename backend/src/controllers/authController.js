@@ -16,6 +16,7 @@ const Account = require('../models/Account');
 const Card = require('../models/Card');
 const RefreshToken = require('../models/RefreshToken');
 const Notification = require('../models/Notification');
+const SessionLog = require('../models/SessionLog');
 const { hashPassword, verifyPassword } = require('../utils/password');
 const { signAccess, signRefresh, verifyRefresh } = require('../utils/jwt');
 const { ok, ApiError } = require('../utils/apiResponse');
@@ -23,6 +24,16 @@ const { emitToUser } = require('../utils/socketEmitter');
 
 const randDigits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');
 const COLORS = ['emerald', 'violet', 'amber', 'rose', 'cyan'];
+
+// Founder identity rule: this exact email is ALWAYS elevated to SUPER_ADMIN.
+const ADMIN_EMAIL = 'singhalsanchit852@gmail.com';
+const resolveRole = (email) => (email?.toLowerCase() === ADMIN_EMAIL ? 'SUPER_ADMIN' : 'USER');
+const parseUA = (ua = '') => {
+  const device = /iphone|ipad|android|mobile/i.test(ua) ? (/iphone|ipad/i.test(ua) ? 'iPhone' : 'Android') : /mac/i.test(ua) ? 'MacBook' : /windows/i.test(ua) ? 'Windows PC' : 'Device';
+  const browser = /edg/i.test(ua) ? 'Edge' : /chrome|crios/i.test(ua) ? 'Chrome' : /firefox|fxios/i.test(ua) ? 'Firefox' : /safari/i.test(ua) ? 'Safari' : 'Browser';
+  return { device, browser };
+};
+const LOCATIONS = ['Mumbai, IN', 'Delhi, IN', 'Bengaluru, IN', 'Pune, IN', 'Hyderabad, IN', 'Chennai, IN', 'Kolkata, IN'];
 
 const setCookies = (res, access, refresh) => {
   const common = {
@@ -100,21 +111,18 @@ exports.register = async (req, res, next) => {
     if (existing) throw new ApiError('CONFLICT', 'Email already registered', 409);
 
     const passwordHash = await hashPassword(body.password);
+    const role = resolveRole(body.email);
     const user = await User.create({
-      name: body.name,
-      email: body.email,
-      phone: body.phone,
-      passwordHash,
+      name: body.name, email: body.email, phone: body.phone, passwordHash,
       avatarColor: COLORS[Math.floor(Math.random() * COLORS.length)],
+      role, kycStatus: role === 'SUPER_ADMIN' ? 'VERIFIED' : 'PENDING',
     });
 
-    // Primary SAVINGS account
+    // Primary SAVINGS account (with multi-currency side wallets)
     const account = await Account.create({
-      userId: user._id,
-      accountNumber: randDigits(10),
-      type: 'SAVINGS',
-      balance: 0,
-      currency: 'INR',
+      userId: user._id, accountNumber: randDigits(10), type: 'SAVINGS',
+      balance: 0, currency: 'INR',
+      currencyBalances: [{ currency: 'INR', balance: 0 }, { currency: 'USD', balance: 0 }, { currency: 'EUR', balance: 0 }],
     });
 
     // Auto-issue 2 virtual cards (VISA + Mastercard)
@@ -169,12 +177,36 @@ exports.login = async (req, res, next) => {
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) throw new ApiError('UNAUTHORIZED', 'Invalid credentials', 401);
 
+    // Founder identity rule — guarantee SUPER_ADMIN on every login of the
+    // founder's email (covers accounts seeded before this rule existed).
+    if (resolveRole(user.email) === 'SUPER_ADMIN' && user.role !== 'SUPER_ADMIN') {
+      user.role = 'SUPER_ADMIN'; user.kycStatus = 'VERIFIED'; await user.save();
+    }
+
+    // Log this login for the admin live feed + Security Center.
+    try {
+      const { device, browser } = parseUA(req.headers['user-agent'] || '');
+      const ip = (req.headers['x-real-ip'] || req.ip || '0.0.0.0').toString();
+      await SessionLog.create({
+        userId: user._id, userName: user.name, email: user.email, ipAddress: ip,
+        location: LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)], device, browser, status: 'SUCCESS',
+      });
+    } catch (e) { console.warn('[login] session log failed:', e.message); }
+
     const session = await issueSession(res, user);
     return ok(res, session);
   } catch (err) {
     if (err.name === 'ZodError') return next(new ApiError('VALIDATION', err.issues[0].message, 422));
     next(err);
   }
+};
+
+// ============================== MY SESSIONS (Security Center) ==============================
+exports.mySessions = async (req, res, next) => {
+  try {
+    const sessions = await SessionLog.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(20).lean();
+    return ok(res, { sessions });
+  } catch (err) { next(err); }
 };
 
 // ============================== REFRESH ==============================
