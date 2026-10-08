@@ -12,6 +12,12 @@ import {
   PiggyBank,
   Gift,
   ShieldCheck,
+  Receipt,
+  TrendingUp,
+  Banknote,
+  Umbrella,
+  Globe,
+  Briefcase,
   Settings as SettingsIcon,
   Menu,
   LogOut,
@@ -39,6 +45,12 @@ import { Settings } from '@/components/dashboard/Settings';
 import { Vaults } from '@/components/dashboard/Vaults';
 import { Rewards } from '@/components/dashboard/Rewards';
 import { Sessions } from '@/components/dashboard/Sessions';
+import { Bills } from '@/components/dashboard/Bills';
+import { Wealth } from '@/components/dashboard/Wealth';
+import { Loans } from '@/components/dashboard/Loans';
+import { Insurance } from '@/components/dashboard/Insurance';
+import { Forex } from '@/components/dashboard/Forex';
+import { Business } from '@/components/dashboard/Business';
 import { Chatbot } from '@/components/Chatbot';
 import { ReceiveQR } from '@/components/ReceiveQR';
 
@@ -49,6 +61,12 @@ const NAV = [
   { id: 'transactions', label: 'Transactions', icon: ArrowLeftRight },
   { id: 'send', label: 'Send Money', icon: Send },
   { id: 'requests', label: 'Requests', icon: Users },
+  { id: 'bills', label: 'Bills & Recharge', icon: Receipt },
+  { id: 'wealth', label: 'Wealth', icon: TrendingUp },
+  { id: 'loans', label: 'Loans & Credit', icon: Banknote },
+  { id: 'insurance', label: 'Insurance', icon: Umbrella },
+  { id: 'forex', label: 'Forex', icon: Globe },
+  { id: 'business', label: 'Business', icon: Briefcase },
   { id: 'rewards', label: 'Rewards', icon: Gift },
   { id: 'beneficiaries', label: 'Beneficiaries', icon: UserPlus },
   { id: 'add-funds', label: 'Add Funds', icon: Plus },
@@ -64,6 +82,12 @@ const VIEWS = {
   transactions: Transactions,
   send: SendView,
   requests: Requests,
+  bills: Bills,
+  wealth: Wealth,
+  loans: Loans,
+  insurance: Insurance,
+  forex: Forex,
+  business: Business,
   rewards: Rewards,
   beneficiaries: Beneficiaries,
   'add-funds': AddFunds,

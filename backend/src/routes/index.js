@@ -15,6 +15,12 @@ const chatRoutes = require('./chatRoutes');
 const adminRoutes = require('./adminRoutes');
 const vaultRoutes = require('./vaultRoutes');
 const razorpayRoutes = require('./razorpayRoutes');
+const billsRoutes = require('./billsRoutes');
+const wealthRoutes = require('./wealthRoutes');
+const loansRoutes = require('./loansRoutes');
+const insuranceRoutes = require('./insuranceRoutes');
+const forexRoutes = require('./forexRoutes');
+const businessRoutes = require('./businessRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/accounts', accountRoutes);
@@ -30,5 +36,11 @@ router.use('/chat', chatRoutes);
 router.use('/admin', adminRoutes);
 router.use('/vaults', vaultRoutes);
 router.use('/razorpay', razorpayRoutes);
+router.use('/bills', billsRoutes);
+router.use('/wealth', wealthRoutes);
+router.use('/loans', loansRoutes);
+router.use('/insurance', insuranceRoutes);
+router.use('/forex', forexRoutes);
+router.use('/business', businessRoutes);
 
 module.exports = router;
